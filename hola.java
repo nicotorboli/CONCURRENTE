@@ -124,10 +124,38 @@ Mostrar una traza de ejecuci ́on del programa en el que el valor final de n sea
 
 
 //¿Es posible que al final de la ejecuci ́on del programa el valor final de n sea menor que 5?
-no porque no existe 
-//¿Cu ́al es el m ́ınimo?Justificar.
-el minimo que puede valer n es local + 1 y el minimo que puede valer local es 4 
+sip 
 
+
+
+//¿Cu ́al es el m ́ınimo?Justificar.
+el minimo que puede valer n es 2
+(t1) int local ;
+(t2) int local ;
+(t1) local = n ; repeat 1, local = 0, n = 0
+(t2) local = n ; repeat 1, local = 0, n = 0
+(t1) n = local + 1; repeat 1, local = 0, n = 1
+(t1) local = n ; repeat 2, local = 1, n = 1
+(t1) n = local + 1; repeat 2, local = 1, n = 2 
+(t1) local = n ; repeat 3, local = 2, n = 2
+(t1) n = local + 1; repeat 3, local = 2, n = 3 
+(t1) local = n ; repeat 4, local = 3, n = 3
+(t1) n = local + 1; repeat 4, local = 3, n = 4 
+----------------------------
+(t2) n = local + 1; repeat 1, local = 0, n = 1
+(t1) local = n ; repeat 5, local = 1, n = 1
+... aca esta el truco 
+-----------------------------
+(t2) local = n ; repeat 2, local = 1, n = 1
+(t2) n = local + 1; repeat 2, local = 1, n = 2 
+(t2) local = n ; repeat 3, local = 2, n = 2
+(t2) n = local + 1; repeat 3, local = 2, n = 3 
+(t2) local = n ; repeat 4, local = 3, n = 3
+(t2) n = local + 1; repeat 4, local = 3, n = 4 
+(t2) local = n ; repeat 5, local = 4, n = 4
+(t2) n = local + 1; repeat 4, local = 4, n = 5
+-----------------------------
+(t1) n = local + 1; repeat 5, local = 1, n = 2
 
 /*Ejercicio 5. Asumir que la funci ́on f tiene una ra ́ız entera, es decir, f(x) = 0 para alg ́un valor x
 entero. A continuaci ́on proponemos distintos programas para encontrar tal ra ́ız. Consideraremos
