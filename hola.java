@@ -279,10 +279,14 @@ n = n - 1;
 
 
 //b) Describir una traza en la que el programa no termina.
-el programa termina siempre 
 
-
-
+(t1)while ( n < 1)  n = 0 ---1
+(t1) n = n + 1;     n = 1
+(t2)while ( n >= 0) n = 1 ---2
+(t2) n = n - 1;     n = 0
+(t1)while ( n < 1)  n = 0 ---1
+(t1) n = n + 1;     n = 1
+....
 //Ejercicio 8. Considerar el siguiente programa:
 
 global int n = 0;
@@ -305,8 +309,11 @@ a) Describir una traza en la que el programa termina.
 
 b) Describir una traza en la que el programa no termina.
 
-(t1)while (! flag )   flag = false 
-(t1)n = 1 - n ;       n = 1
-(t1)n = 1 - n ;       n = 0 
-(t1)n = 1 - n ;       n = -1 
+(t2)while (! flag )   flag = false, n = 0 
+(t1)while (! flag )   flag = false, n = 0 
+(t1)n = 1 - n         flag = false, n = 1
+(t2)if ( n == 0)      flag = false, n = 0
+(t1)while (! flag )   flag = false, n = 0 
+(t1)n = 1 - n         flag = false, n = 0
+
 
