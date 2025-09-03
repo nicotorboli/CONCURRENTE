@@ -134,14 +134,20 @@ tomarFlag (1 ,0);
 flag [1] = false;
 }
 
+
+/*
 Responda si la propuesta anterior resuelve el problema de la exclusi ́on mutua en los siguientes
 casos:
-a) La operaci ́on tomarFlag no es at ́omica.
-b) La operaci ́on tomarFlag s ́ı es at ́omica.
-
-
-
-
+a) La operaci ́on tomarFlag no es atomica.
+b) La operaci ́on tomarFlag s ́ı es at ́omica. 
+*/
+si no es atomica se puede romper en la lectura y escritura de variables
+(t1)while (! flags [0])         // flags[0] = false, !false 
+(t2)while (! flags [1])         // flags[0] = false, !false
+(t1)tomarFlag (0 ,1);           // flags [ 0] = ! flags [ 1 ]; local: true 
+(t2)tomarFlag (1 ,0);           // flags [ 1] = ! flags [ 0 ]; local: true
+(t2)tomarFlag (0 ,1);           // flags [ 1] = ! flags [ 0]; local: true ; flags [0] = local 
+(t1)tomarFlag (1 ,0);           // flags [ 0] = ! flags [ 1 ]; local: true ; flags [1] = local 
 
 
 Ejercicio 4. Considere la siguiente operaci ́on at ́omica que implementa un swap entre dos refe-
@@ -236,51 +242,54 @@ Indique si el algoritmo resuelve el problema de la exclusi ́on mutua para n thr
 (en caso negativo indicar que condici ́on no se cumple y mostrar una traza).
 Ejercicio 7. Considere la siguiente propuesta para resolver el problema de exclusi ́on mutua para
 N threads:
+
+
 global LLSC lock = new LLSC (false , -1);
+
 thread {
-// Seccion No Critica
-LLSC local ;
-do {
-do { local = lock . loadLink (); }
-while ( local . flag );
-} while (! lock . storeConditional ( local , true ));
-// Seccion Critica
-lock . reset ();
-// Seccion No Critica
+    // Seccion No Critica
+    LLSC local ;
+    do {
+        do { local = lock . loadLink (); }
+        while ( local . flag );
+    } while (! lock . storeConditional ( local , true ));
+    // Seccion Critica
+    lock . reset ();
+    // Seccion No Critica
 }
-Dada la siguiente implementaci ́on de la clase LLSC.
+
+
+Dada la siguiente implementacion de la clase LLSC.
 class LLSC {
-private boolean flag ;
-private long timestamp ;
-public LLSC (boolean flag , long timestamp ) {
-this. flag = flag ;
-this. timestamp = timestamp ;
-}
-public LLSC loadLink () {
-this. timestamp = System . currentTimeMillis ();
-return new LLSC (this. flag , this. timestamp );
-}
-public boolean storeConditional ( LLSC other , boolean value ) {
-if (this. timestamp != other . timestamp )
-return false;
-this. flag = value ;
-return true;
-}
-public void reset () {
-this. flag = false;
-}
+    private boolean flag ;
+    private long timestamp ;
+    public LLSC (boolean flag , long timestamp ) {
+        this. flag = flag ;
+        this. timestamp = timestamp ;
+    }
 
-4
-
-Programacion Concurrente  ́ Pr ́actica 3: Atomicidad
-
+    public LLSC loadLink () {
+        this. timestamp = System . currentTimeMillis ();
+    return new LLSC (this. flag , this. timestamp );
+    }
+    
+    public boolean storeConditional ( LLSC other , boolean value ) {
+        if (this. timestamp != other . timestamp )
+        return false;
+        this. flag = value ;
+    return true;
+    }
+    
+    public void reset () {
+        this. flag = false;
+    }
 }
 
 Asumiendo que System.currentTimeMillis() nunca retorna dos veces el mismo valor, res-
 ponda:
 
 a) Muestre que la propuesta no cumple la propiedad de Mutex.
-b) Muestre que la propuesta no cumple la propiedad de Garant ́ıa de Entrada.
+b) Muestre que la propuesta no cumple la propiedad de Garantia de Entrada.
 
 c) ¿Cambian en algo sus respuestas si loadLink y storeConditional son at ́omicas? Justifi-
 que apropiadamente.
