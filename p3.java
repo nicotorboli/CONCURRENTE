@@ -289,6 +289,12 @@ Asumiendo que System.currentTimeMillis() nunca retorna dos veces el mismo valor,
 ponda:
 
 a) Muestre que la propuesta no cumple la propiedad de Mutex.
+
+(t1)
+(t2)
+
+
+
 b) Muestre que la propuesta no cumple la propiedad de Garantia de Entrada.
 
 c) ¿Cambian en algo sus respuestas si loadLink y storeConditional son at ́omicas? Justifi-
