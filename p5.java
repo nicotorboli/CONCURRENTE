@@ -27,8 +27,34 @@ thread acumulador {
 //b) ¿Qu ́e modificaci ́on deber ́ıa hacerse si existieran m ́ultiples threads generador? ¿Y si hubieran
 //m ́ultiples threads acumulador? ¿Existe posibilidad de starvation?
 
+2
+
+global Semaphore permisoAbordar = new Semaphore(0,True);
+global Semaphore asuntoOcupado  = new Semaphore(0);
+global Semaphore permisoBajar   = new Semaphore(0);
+global Semaphore permisoVolver  = new Semaphore(0);
 
 
+thread bote {
+    costa = 0
+    permisoAbordar.release()
+    asuntoOcupado.adquire()
+    permisoBajar.release()
+    permisoVolver.adquire()
+}
+
+
+thread Persona {
+
+    permisoAbordar.adquire()
+    asuntoOcupado.release()
+    permisoBajar.adquire()
+    permisoVolver.release()
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Ejercicio 3. En un gimnasio hay cuatro aparatos, cada uno para trabajar un grupo muscular
 distinto. Los aparatos son cargados con discos (el gimnasio cuenta con 20 discos, todos del mismo
@@ -46,6 +72,8 @@ Ayuda: Considere modelar a los clientes como threads (cada uno con su propia rut
 los aparatos como un arreglo de sem ́aforos.
 
 */
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Semaphore maquina[] = new Semaphore[4] {1,1,1,1}; // fuerte
 Semaphore discos = new Semaphore(20);
@@ -68,7 +96,11 @@ thread Persona {
     maquina(nromaq).release();
     }
 }
-//////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 /*
 Ejercicio 4. En un famoso shopping de la ciudad se agreg ́o un puesto de tintorer ́ıa autom ́atica
@@ -88,6 +120,8 @@ Semaphore hayMaquinaDisponible() = new Semaphore(0);
 Semaphore mensajeEnviado[] = new Semaphore[k] {0...0};
 Semaphore ropaCargada[] = new Semaphore[k] {0...0};
 Semaphore ropaRetirada[] = new Semaphore[k] {0...0};
+
+global int maquinaDisponible;
 
 thread maquina(id){
     while (True){
@@ -117,6 +151,64 @@ thread Persona {
     ropaRetirada[miMaquina].release();
 
 }
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+Ejercicio 5. Considere el ejercicio 2 y piense este escenario adicional:
+a) Modifique la soluci ́on de la variante (i) considerando que ahora que hay K botes distintos
+llevando gente de manera concurrente (donde cada uno viaja a su tiempo). Todos los barcos
+comienzan en la costa 0. El thread transbordador recibe como par ́ametro un id de barco
+ ́unico. Modele el problema prestando atenci ́on a que el comportamiento sea consistente (ie.
+que no pase que una persona se suba a un bote y se baje de otro).
+
+
+global Semaphore mutexBarcosEnCosta = new Semaphore[2]{1,1}
+global Semaphore permisoAbordar = new Semaphore(0,True);
+global Semaphore asuntoOcupado  = new Semaphore(0);
+global Semaphore permisoBajar   = new Semaphore[K]{0...0};
+global Semaphore permisoVolver  = new Semaphore(0);
+
+
+global Array barcoIdDisponibleEnCosta = new Array[2];
+
+thread bote(int id){
+    costa = 0
+    mutexBarcosEnCosta[costa].adquire(); 
+    
+    barcoIdDisponibleEnCosta[costa] = id; 
+    
+    permisoAbordar[costa].adquire(N);
+    
+    ficharPasajerosEnbarco[id];
+    
+    mutexBarcosEnCosta[costa].adquire(); 
+    
+    asientoOcupado.adquire(N);
+    
+    permisoBajar[id].release(N);
+    
+    permisoVolver[id].adquire(N);
+}
+
+
+thread Persona(int costa) {
+
+    permisoAbordar[costa].adquire();
+    barcoIdDisponibleEnCosta = barcoIdDisponible;
+    permisoAbordar[costa].release();
+
+    asientoOcupado.release();
+
+    permisoBajar[barcoIdEnElQueEstoy].adquire(); 
+    
+    permisoVolver[barcoIdEnElQueEstoy].release();
+}
+
+
+
+
+
+////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 Ejercicio 6. Se avecina el partido super-mega cl ́asico entre dos equipos que llamaremos BJ y RP.
 Para evitar conflictos en la cancha, se dispuso el siguiente mecanismo de control de acceso: No
@@ -230,36 +322,37 @@ quede esperando que se sienten m ́as personas que las que las que retiraron ent
 global Semaphore mutexEntrarCine = new Semaphore(1);
 global Semaphore permisoSentar = new Semaphore(0); 
 
-global int cineAbieto = True
+global int cineAbieto = true
 global int entradasTomadas = 0;
 global int capacidad = M ;
 
 thread hincha(){
-    
-    
         mutexEntrarCine.adquire()
-        if cineAbierto {
-            if capacidad > 0 {
-                 //entra  
-                capacidad -- 
-                entradasTomadas ++  
-                mutexEntrarCine.release()
-                permisoSentar.release()
-            }
-            else{  // irse
-                mutexEntrarCine.release()
-            }
+        if cineAbierto && capacidad > 0 {
+            //entra  
+            capacidad -- 
+            entradasTomadas ++  
+            mutexEntrarCine.release()
+            //////////
+
+            //////////
+            permisoSentar.release()
+        }
         else{  // irse
-                mutexEntrarCine.release()
-            }
-    }
+            mutexEntrarCine.release()
+        }
 }
 
 thread personal(){
     mutexEntrarCine.adquire()
-    cineAbieto = False
+    cineAbieto = false
     mutexEntrarCine.release()
+    /////////
+
+    ////////////
     repeat(entradas){ 
         permisoSentar.adquire()
     }
 }
+
+ 
