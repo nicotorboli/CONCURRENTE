@@ -30,6 +30,94 @@ thread acumulador {
 
 
 
+Ejercicio 3. En un gimnasio hay cuatro aparatos, cada uno para trabajar un grupo muscular
+distinto. Los aparatos son cargados con discos (el gimnasio cuenta con 20 discos, todos del mismo
+peso). Cada cliente del gimnasio posee una rutina que le indica qu ́e aparatos usar, en qu ́e orden
+y cuanto peso utilizar en cada caso (asuma que la rutina es una lista de tuplas con el n ́umero de
+aparato a usar y la cantidad de discos cargar, la rutina podr ́ıa incluir repeticiones de un mismo
+aparato). Como norma el gimnasio exige que cada vez que un cliente termina de utilizar un
+aparato descargue todos los discos y los coloque en el lugar destinado a su almacenamiento (lo
+que incluye usos consecutivos del mismo aparato).
+a) Indique cuales son los recursos compartidos y roles activos.
+/*
+b) Escriba un c ́odigo que simule el funcionamiento del gimnasio, garantizando exclusi ́on mutua
+en el acceso a los recursos compartidos y que est ́e libre de deadlock y livelock.
+Ayuda: Considere modelar a los clientes como threads (cada uno con su propia rutina) y a
+los aparatos como un arreglo de sem ́aforos.
+
+*/
+
+Semaphore maquina[] = new Semaphore[4] {1,1,1,1}; // fuerte
+Semaphore discos = new Semaphore(20);
+Semaphore mutexDiscos = new Semaphore(1)
+
+
+thread Persona {
+    for ((nromaq,cantDiscos) in rutina){
+        maquina[nromaq].adquire();
+        mutexDiscos.adquire();
+        repeat(cantDiscos){
+            discos.adquire();
+        }
+        mutexDiscos.release();
+
+        //ejercita
+        repeat(cantDiscos){
+            discos.release();
+        }
+    maquina(nromaq).release();
+    }
+}
+//////////////////////////////////////////////////
+
+/*
+Ejercicio 4. En un famoso shopping de la ciudad se agreg ́o un puesto de tintorer ́ıa autom ́atica
+para que la gente pueda dejar su ropa mientras hace sus compras. Novedosamente, estas m ́aquinas
+env ́ıan un mensaje de texto a las personas una vez que sus prendas est ́an listas para ser retiradas.
+Hay K m ́aquinas de lavado listas para funcionar. Cada persona que quiere utilizar el servicio
+(en este ejemplo no modelaremos a quieres no lo requieran) espera que haya alguna m ́aquina
+disponible, carga su ropa y se va a comprar. Terminadas las compras, la persona se fija en su
+tel ́efono si ya lleg ́o el mensaje de la m ́aquina tintorera; de no ser as ́ı, se lo queda esperando hasta
+que aparezca. Una vez que el mensaje es recibido, la persona se dirige al puesto de tintorer ́ıa a
+hacer el retiro. Modele este escenario por medio de sem ́aforos. Procure que no suceda que una
+persona vaya a retirar su ropa cuando la que se termin ́o de procesar es la de alguien distinto
+(Nota: Por simplicidad, la persona chequear ́a si est ́a el mensaje reci ́en una vez terminadas sus
+compras).*/
+Semaphore puedeAnunciarse() = new Semaphore(1);
+Semaphore hayMaquinaDisponible() = new Semaphore(0);
+Semaphore mensajeEnviado[] = new Semaphore[k] {0...0};
+Semaphore ropaCargada[] = new Semaphore[k] {0...0};
+Semaphore ropaRetirada[] = new Semaphore[k] {0...0};
+
+thread maquina(id){
+    while (True){
+        puedeAnunciarse.adquire();
+        maquinaDisponible = id;
+        hayMaquinaDisponible.release();
+        ropaCargada(id).adquire();
+        //lavar
+        //enviar mensaje
+        mensajeEnviado[id].release();
+        ropaRetirada[id].adquire();
+    }
+}
+
+
+thread Persona {
+    int miMaquina;
+    hayMaquinaDisponible.adquire();
+    miMaquina = maquinaDisponible;
+    puedeAnunciarse.release();
+    // cargar ropa 
+    ropaCargada[miMaquina].adquire();
+    // se va 
+    mensajeEnviado[miMaquina].adquire();
+    // retira la ropa
+
+    ropaRetirada[miMaquina].release();
+
+}
+/////////////////////////////////////////////////////////////////
 Ejercicio 6. Se avecina el partido super-mega cl ́asico entre dos equipos que llamaremos BJ y RP.
 Para evitar conflictos en la cancha, se dispuso el siguiente mecanismo de control de acceso: No
 se permitir ́a que la diferencia entre la gente de la hinchada de BJ y la de gente de la hinchada
@@ -137,3 +225,41 @@ mos pensar que la gente que entr ́o se queda mirando el partido indefinidamente
 
 este nuevo escenario utilizando Sem ́aforos. Preste atenci ́on a que el personal del cine no se
 quede esperando que se sienten m ́as personas que las que las que retiraron entradas.
+
+
+global Semaphore mutexEntrarCine = new Semaphore(1);
+global Semaphore permisoSentar = new Semaphore(0); 
+
+global int cineAbieto = True
+global int entradasTomadas = 0;
+global int capacidad = M ;
+
+thread hincha(){
+    
+    
+        mutexEntrarCine.adquire()
+        if cineAbierto {
+            if capacidad > 0 {
+                 //entra  
+                capacidad -- 
+                entradasTomadas ++  
+                mutexEntrarCine.release()
+                permisoSentar.release()
+            }
+            else{  // irse
+                mutexEntrarCine.release()
+            }
+        else{  // irse
+                mutexEntrarCine.release()
+            }
+    }
+}
+
+thread personal(){
+    mutexEntrarCine.adquire()
+    cineAbieto = False
+    mutexEntrarCine.release()
+    repeat(entradas){ 
+        permisoSentar.adquire()
+    }
+}
