@@ -216,30 +216,32 @@ thread Persona(int costa) {
 global Semaphore mutexBarcosEnCosta = new Semaphore[2]{1,1}
 global Semaphore mutexBarcosEnCosta = new Semaphore[2]{1,1}
 global Semaphore permisoAbordar = new Semaphore(0,True);
-global Semaphore asuntoOcupado  = new Semaphore(0);
+global Semaphore asuntoOcupado  = new Semaphore[K]{0...0};
 global Semaphore permisoBajar   = new Semaphore[K]{0...0};
-global Semaphore permisoVolver  = new Semaphore(0);
+global Semaphore permisoVolver  = new Semaphore[K]{0...0};
 
 
 global Array barcoIdDisponibleEnCosta = new Array[2];
 
 thread bote(int id){
     costa = 0
-    mutexBarcosEnCosta[costa].adquire(); 
-    
-    barcoIdDisponibleEnCosta[costa] = id; 
-    
-    permisoAbordar[costa].release(N);
-    
-    ficharPasajerosEnbarco[id].adquire(n);
-    
-    mutexBarcosEnCosta[costa].release(); 
-    
-    asientoOcupado.adquire(N);
-    
-    permisoBajar[id].release(N);
-    
-    permisoVolver[id].adquire(N);
+    while true{ 
+        mutexBarcosEnCosta[costa].adquire(); 
+
+        barcoIdDisponibleEnCosta[costa] = id; 
+
+        permisoAbordar[costa].release(N);
+
+        ficharPasajerosEnbarco[id].adquire(N);
+
+        mutexBarcosEnCosta[costa].release(); 
+
+        asientoOcupado[id].adquire(N);
+
+        permisoBajar[id].release(N);
+
+        permisoVolver[id].adquire(N);
+    }
 }
 
 
@@ -248,8 +250,10 @@ thread Persona(int costa) {
     permisoAbordar[costa].adquire();
 
     barcoIdEnElQueEstoy = barcoIdDisponibleEnCosta;
+
     ficharPasajerosEnbarco[barcoIdEnElQueEstoy].release(n)
-    asientoOcupado.release();
+    
+    asientoOcupadO[barcoIdEnElQueEstoy].release();
 
     permisoBajar[barcoIdEnElQueEstoy].adquire(); 
     
@@ -325,7 +329,7 @@ thread hincha(int = equipo % 2){
     puedeEntrar[equipo].acquire()
     int rival= (equipo + 1) % 2;
     mutexEntrarCancha.adquire()
-    if capacidad > 0 
+     if capacidad > 0 
     then //entra    
         if capacidad-- == 0;
             then puedeEntrar[equipo].release() ;
@@ -370,20 +374,20 @@ global Semaphore mutexEntrarCine = new Semaphore(1);
 global Semaphore permisoSentar = new Semaphore(0); 
 
 global int cineAbieto = true
-global int entradasTomadas = 0;
 global int capacidad = M ;
 
 thread hincha(){
         mutexEntrarCine.adquire()
         if cineAbierto && capacidad > 0 {
             //entra  
-            capacidad -- 
-            entradasTomadas ++  
+            capacidad --  
             mutexEntrarCine.release()
             //////////
 
             //////////
-            permisoSentar.release()
+            permisoParaEntrar.adquire()
+            permisoParaEmpezarLaFuncion.release()
+
         }
         else{  // irse
             mutexEntrarCine.release()
@@ -397,9 +401,11 @@ thread personal(){
     /////////
 
     ////////////
-    repeat(entradas){ 
-        permisoSentar.adquire()
+    repeat(m - capacidad ){ 
+        permisoParaEntrar.release()
     }
+    permisoParaEmpezarLaFuncion.acquire(m - capacidad)
+
 }
 
  
