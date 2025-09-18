@@ -165,15 +165,17 @@ que no pase que una persona se suba a un bote y se baje de otro).
 global Semaphore mutexBarcosEnCosta = new Semaphore[2]{1,1}
 global Semaphore mutexBarcosEnCosta = new Semaphore[2]{1,1}
 global Semaphore permisoAbordar = new Semaphore(0,True);
-global Semaphore asuntoOcupado  = new Semaphore(0);
+global Semaphore asientoOcupado  = new Semaphore(0);
 global Semaphore permisoBajar   = new Semaphore[K]{0...0};
-global Semaphore permisoVolver  = new Semaphore(0);
+global Semaphore permisoVolver  = new Semaphore[K]{0...0};
 
 
 global Array barcoIdDisponibleEnCosta = new Array[2];
 
 thread bote(int id){
     costa = 0
+    while true 
+    costa = costa mod 2  
     mutexBarcosEnCosta[costa].adquire(); 
     
     barcoIdDisponibleEnCosta[costa] = id; 
@@ -188,6 +190,8 @@ thread bote(int id){
     
     permisoBajar[id].release(N);
     
+    costa++
+
     permisoVolver[id].adquire(N);
 }
 
