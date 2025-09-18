@@ -163,6 +163,7 @@ que no pase que una persona se suba a un bote y se baje de otro).
 
 
 global Semaphore mutexBarcosEnCosta = new Semaphore[2]{1,1}
+global Semaphore mutexBarcosEnCosta = new Semaphore[2]{1,1}
 global Semaphore permisoAbordar = new Semaphore(0,True);
 global Semaphore asuntoOcupado  = new Semaphore(0);
 global Semaphore permisoBajar   = new Semaphore[K]{0...0};
@@ -177,11 +178,11 @@ thread bote(int id){
     
     barcoIdDisponibleEnCosta[costa] = id; 
     
-    permisoAbordar[costa].adquire(N);
+    permisoAbordar[costa].release(N);
     
-    ficharPasajerosEnbarco[id];
+    ficharPasajerosEnbarco[id].adquire(n);
     
-    mutexBarcosEnCosta[costa].adquire(); 
+    mutexBarcosEnCosta[costa].release(); 
     
     asientoOcupado.adquire(N);
     
@@ -194,9 +195,9 @@ thread bote(int id){
 thread Persona(int costa) {
 
     permisoAbordar[costa].adquire();
-    barcoIdDisponibleEnCosta = barcoIdDisponible;
-    permisoAbordar[costa].release();
 
+    barcoIdEnElQueEstoy = barcoIdDisponibleEnCosta;
+    ficharPasajerosEnbarco[barcoIdEnElQueEstoy].release(n)
     asientoOcupado.release();
 
     permisoBajar[barcoIdEnElQueEstoy].adquire(); 
@@ -208,6 +209,48 @@ thread Persona(int costa) {
 
 
 
+global Semaphore mutexBarcosEnCosta = new Semaphore[2]{1,1}
+global Semaphore mutexBarcosEnCosta = new Semaphore[2]{1,1}
+global Semaphore permisoAbordar = new Semaphore(0,True);
+global Semaphore asuntoOcupado  = new Semaphore(0);
+global Semaphore permisoBajar   = new Semaphore[K]{0...0};
+global Semaphore permisoVolver  = new Semaphore(0);
+
+
+global Array barcoIdDisponibleEnCosta = new Array[2];
+
+thread bote(int id){
+    costa = 0
+    mutexBarcosEnCosta[costa].adquire(); 
+    
+    barcoIdDisponibleEnCosta[costa] = id; 
+    
+    permisoAbordar[costa].release(N);
+    
+    ficharPasajerosEnbarco[id].adquire(n);
+    
+    mutexBarcosEnCosta[costa].release(); 
+    
+    asientoOcupado.adquire(N);
+    
+    permisoBajar[id].release(N);
+    
+    permisoVolver[id].adquire(N);
+}
+
+
+thread Persona(int costa) {
+
+    permisoAbordar[costa].adquire();
+
+    barcoIdEnElQueEstoy = barcoIdDisponibleEnCosta;
+    ficharPasajerosEnbarco[barcoIdEnElQueEstoy].release(n)
+    asientoOcupado.release();
+
+    permisoBajar[barcoIdEnElQueEstoy].adquire(); 
+    
+    permisoVolver[barcoIdEnElQueEstoy].release();
+}
 ////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 Ejercicio 6. Se avecina el partido super-mega cl ́asico entre dos equipos que llamaremos BJ y RP.
