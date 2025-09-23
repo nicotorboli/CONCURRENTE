@@ -152,8 +152,12 @@ thread Persona {
 
 }
 
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 Ejercicio 5. Considere el ejercicio 2 y piense este escenario adicional:
 a) Modifique la soluci ́on de la variante (i) considerando que ahora que hay K botes distintos
 llevando gente de manera concurrente (donde cada uno viaja a su tiempo). Todos los barcos
@@ -214,9 +218,9 @@ thread Persona(int costa) {
 
 
 global Semaphore mutexBarcosEnCosta = new Semaphore[2]{1,1}
-global Semaphore mutexBarcosEnCosta = new Semaphore[2]{1,1}
+global Semaphore ficharPasajerosEnbarco = new Semaphore[K]{0...0};
 global Semaphore permisoAbordar = new Semaphore(0,True);
-global Semaphore asuntoOcupado  = new Semaphore[K]{0...0};
+global Semaphore asientoOcupado  = new Semaphore[K]{0...0};
 global Semaphore permisoBajar   = new Semaphore[K]{0...0};
 global Semaphore permisoVolver  = new Semaphore[K]{0...0};
 
@@ -259,8 +263,13 @@ thread Persona(int costa) {
     
     permisoVolver[barcoIdEnElQueEstoy].release();
 }
-////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 Ejercicio 6. Se avecina el partido super-mega cl ́asico entre dos equipos que llamaremos BJ y RP.
 Para evitar conflictos en la cancha, se dispuso el siguiente mecanismo de control de acceso: No
 se permitir ́a que la diferencia entre la gente de la hinchada de BJ y la de gente de la hinchada
@@ -382,9 +391,6 @@ thread hincha(){
             //entra  
             capacidad --  
             mutexEntrarCine.release()
-            //////////
-
-            //////////
             permisoParaEntrar.adquire()
             permisoParaEmpezarLaFuncion.release()
 
@@ -408,4 +414,250 @@ thread personal(){
 
 }
 
- 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/*
+Ejercicio 7. Dada la soluci ́on al problema de Lectores-Escritores con prioridad para escritores,
+considere las siguientes modificaciones al thread Lector:
+*/
+/*
+a) ¿Qu ́e efecto producir ́ıa si se usara un permisoL para todo el cuerpo del Lector? Es decir,
+con el siguiente c ́odigo para los lectores:*/
+
+thread Lector () {
+    mutexP . acquire ();
+    permisoL . acquire ();
+    lectores ++;
+    if ( lectores == 1)
+        permisoE . acquire ();
+    leer ();
+    lectores - -;
+    if ( lectores == 0)
+        permisoE . release ();
+    permisoL . release ();
+    mutexP . release ();
+}
+
+
+b) ¿Funcionar ́ıa la soluci ́on si se quitara el sem ́aforo mutexL delegando la exclusi ́on mutua de
+los lectores a permisoL? Es decir, con el siguiente c ́odigo para los lectores:
+thread Lector : {
+
+mutexP . acquire ();
+permisoL . acquire ();
+lectores ++;
+if ( lectores == 1)
+permisoE . acquire ();
+permisoL . release ();
+mutexP . release ();
+leer ();
+permisoL . acquire ();
+lectores - -;
+if ( lectores == 0)
+permisoE . release ();
+permisoL . release ();
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+Ejercicio 8. En una oficina hay un ba ̃no unisex con 8 toiletes. A lo largo del d ́ıa, distintas
+personas entran a utilizarlo. Si sucede que en ese momento todos los toiletes est ́an ocupados,
+las personas esperan hasta que alguno se libere. Por otra parte, peri ́odicamente el personal de
+limpieza debe pasar a mantener las instalaciones en condiciones. La limpieza del ba ̃no no se
+puede hacer mientras haya gente dentro del mismo, por lo que si en ese momento hay personas
+utilizando alg ́un toilete o esperando que se libere alguno, el personal de limpieza debe esperar a
+que el ba ̃no se vac ́ıe completamente. En contraparte, si hay un empleado de limpieza trabajando
+en el ba ̃no, las personas que quieran utilizarlo deber ́an esperar a que termine.
+
+a) Modele esta situaci ́on utilizando sem ́aforos como mecanismo de sincronizaci ́on (puede mo-
+delar al personal de limpieza como un  ́unico thread).
+
+
+
+
+
+thread persona {
+    mutexP.acquire ();
+    permisoBanio.acquire ();
+    mutexC.acquire ();
+    clientes ++;
+    if ( clientes == 1)
+        permisoTrabajar. acquire ();
+    mutexC . release ();
+    permisoBanio . release ();
+    mutexP . release ();
+    
+    permisoIrAlBaño.acquire()
+    irAlBaño ();
+    permisoIrAlBaño.release()
+
+    mutexC . acquire ();
+    clientes - -;
+    if ( clientes == 0)
+        permisoTrabajar . release ();
+    mutexC . release ();
+}
+
+
+thread personal {
+    
+    mutexT . acquire ();
+    limpiadores ++;
+    if ( limpiadores == 1)
+        permisoBanio . acquire ();
+    mutexT . release ();
+
+    permisoTrabajar . acquire ();
+    trabajar ();
+    permisoTrabajar . release ();
+
+
+    mutexT . acquire ();
+    limpiadores --;
+    if ( limpiadores == 0)
+        permisoBanio . release ();
+    mutexT . release ();
+
+}
+
+
+
+b) Modifique la soluci ́on anterior para contemplar el caso donde el personal de limpieza tiene
+prioridad. Es decir, si hay un empleado de limpieza esperando para hacer el mantenimiento,
+las siguientes personas que lleguen deben esperar a que logre terminar la limpieza.
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+global Semaphore permisoCargar              = new Semaphore(0,true)
+global Semaphore mutexPuesto                = new Semaphore(0)
+global Semaphore[] permisoDeIrse            = new Semaphore(6) {0,...,0}
+global Semaphore permisoSolicitarCarga      = new Semaphore(1)
+global Semaphore permisoSolicitarDescarga   = new Semaphore(1)
+global Semaphore mutexP                     = new Semaphore(1)
+global Semaphore mutexv                     = new Semaphore(1)
+global Semaphore mutexC                     = new Semaphore(1)
+
+
+global int puestoDeCargaDisponible;
+global int vehiculos; 
+global int camiones; 
+
+thread vehiculos:{
+    mutexP.adquire() 
+    
+    permisoSolicitarCarga.adquire()
+    
+    permisoCargar.adquire()
+    
+    miPuesto = puestoDeCargaDisponible
+    puestoAsignado[miPuesto].release()
+    
+    mutexV.adquire()
+    
+    vehiculos ++
+    if vehiculos == 1
+        permisoSolicitarDescargar.adquire()
+    
+    mutexV.release()
+    
+    permisoSolicitarCarga.release()
+    
+    mutexP.release()
+
+
+    // ir al puesto
+    cargar() 
+
+
+    mutexV.adquire()
+    vehiculo--
+    permisoDeIrse[miPuesto].release()
+    mutexV.release()
+    
+}
+
+
+thread camiones:{
+    
+    mutexC.acquire ();
+    camiones  ++;
+    if ( camiones == 1)
+        permisoSolicitarCarga.acquire();
+    mutexC . release ();
+
+    permisoSolicitarDescargar.acquire ();
+    descargar ();
+    permisoSolicitarDescargar.release ();
+    
+    mutexC.acquire ();
+    camiones --;
+    if ( camiones == 0)
+        permisoSolicitarCarga.release ();
+    mutexC.release ();
+
+}
+
+thread puestoDeCarga(int id):{
+    while true 
+        mutexPuesto.adquire()
+        permisoCargar.release()
+        puestoDeCargaDisponible = id 
+        puestoAsignado[id].adquire()
+        mutexPuesto.release()
+        permisoDeIrse[id].adquire()
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Ejercicio 10. Se desea modelar el control de tr ́ansito de un puente que conecta dos ciudades.
+
+
+Dado que el puente es muy estrecho se debe evitar que dos autos circulen al mismo tiempo en
+direcci ́on opuesta, dado que quedar ́ıan atascados.
+Resuelva los siguientes problemas usando sem ́aforos, modelando cada coche como un thread
+independiente que desea atravesar el puente en alguna de las dos direcciones posibles. Tenga
+en cuenta que atravesar el puente no es una acci ́on at ́omica, y por lo tanto, requiere de cierto
+tiempo.
+a) De una soluci ́on que permita que varios coches que se desplazan en la misma direcci ́on
+puedan circular simult ́aneamente.
+b) Modifique la soluci ́on anterior para que como m ́aximo 3 coches puedan circular por el
+puente al mismo tiempo.
+
+
+global Semaphore[] mutexDir             = new Semaphore[1]{1,1}
+
+global array autos ;
+
+
+thread vehiculo (int dir){
+    mutexDir[dir].adquire()
+    autos[dir] ++
+    if autos[dir] == 1
+        permisoPuente.adquire()
+    mutexDir[dir].release()
+
+    puedeTransitar.adquire()
+    //viajar
+    puedeTransitar.release()
+
+    mutexDir[dir].adquire()
+    autos[dir] --
+    if autos[dir] == 0
+        permisoPuente.release()
+    mutexDir[dir].release()
+
+
+}
