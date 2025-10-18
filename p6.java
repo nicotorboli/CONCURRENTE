@@ -202,22 +202,56 @@ class Usuario(Runnable()){
 
 }
 
-
-
-
-
-Ejercicio 7. El comit ́e organizador de una conferencia posee una sala para exposici ́on de charlas.
+/* 
+Ejercicio 7. 
+El comit ́e organizador de una conferencia posee una sala para exposici ́on de charlas.
 Las personas que desean asistir a una charla deben tener la posibilidad de indicar que entran en
 la sala o que salen de ella, mientras que la persona oradora debe tener la posibilidad de indicar el
 inicio de la charla y el final de la misma. Por respeto, los asistentes, si una persona asistente desea
 retirarse durante la charla, deber ́a espear a que esta termine para poder salir efectivamente. La
 sala tiene capacidad para N personas.
-De una soluci ́on usando monitores que modele los siguientes escenarios:
-a) Se dispone de una sala para dar repetidas veces la misma charla. Si al momento de querer
+De una soluci ́on usando monitores que modele los siguientes escenarios:*/
+
+/*a) Se dispone de una sala para dar repetidas veces la misma charla. Si al momento de querer
 iniciar la charla el auditorio est ́a vac ́ıo, la persona oradora esperar ́a a que llegue alguien
 para escucharla. Asimismo, si una persona llega y quiere entrar cuando la sala est ́a llena,
 deber ́a esperar a que se vaya alguien cuando termine la charla. Notar que si hay lugar, s ́ı se
-puede entrar en la sala aunque la charla haya comenzado.
+puede entrar en la sala aunque la charla haya comenzado.*/
+
+
+class Sala {
+    int capacidad = N
+    int asistentes = 0
+    boolean charlaEnCurso = false
+
+    public synchronized iniciar_charla(){
+        while (charlaEnCurso == true && asistentes == 0 ){
+            wait();
+        } 
+        charlaEnCurso = true 
+    } 
+
+    public synchronized ingresar_a_sala(){
+        while (asistentes == capacidad) {
+            wait();
+        }
+        asistentes++
+    }
+    
+    public synchronized dejar_sala(){
+        while (charlaEnCurso){
+            wait();
+        }
+        asistentes--
+        notifyAll();
+    }
+
+    public synchronized finalizar_charla(){ 
+        charlaEnCurso = false 
+        notifyAll();
+    } 
+
+/*    
 b) Al igual que en el punto a) se dispone de una sala, pero ahora se dan tres charlas distintas
 que se rotan (charla 0, charla 1, charla 2, charla 0, . . . ). Cada persona que quiere entrar
 en la sala y cada persona que va a dar una charla indica con un par ́ametro su n ́umero de
@@ -227,83 +261,38 @@ charla tiene que esperar que sea la de su n ́umero correspondiente. Las accione
 la charla y de retirarse no llevan par ́ametro, se asume que siempre corresponden a la charla
 actual (pero en el caso de retirarse sigue existiendo la restricci ́on de no irse mientras se
 est ́e dando una charla, independientemente de cual sea).
+*/
 
-2
+class Sala {
+    int capacidad = N
+    int asistentes = 0
+    boolean charlaEnCurso = false
+    int charlaActual = 0
 
-Programacion Concurrente  ́ Pr ́actica 6: Monitores
-Ejercicios para implementar en Java
-Ejercicio 8. Implementar lo siguiente utilizando monitores:
-a) Un buffer (FIFO) de n ́umeros enteros cuya dimensi ́on est ́a prefijada al momento de su
-creaci ́on.
-b) Una clase productor (que extienda de Thread) que agregue n ́umeros naturales consecutivos
-a un buffer dado al momento de creaci ́on.
-c) Una clase consumidor (que extienda de Thread) que muestre por pantalla los valores que
-toma de un buffer pasado al momento de su creaci ́on.
-d) Un programa que cree un buffer de dimensi ́on 2 y active concurrentemente un consumidor
-y un productor.
+    public synchronized iniciar_charla(int charla){
+        while (charlaEnCurso == true && asistentes == 0 && charlaActual /=  charla){
+            wait();
+        } 
+        charlaEnCurso = true 
+    } 
 
-Ejercicio 9. Se desea implementar el monitor Promise, que representa un c ́omputo que con-
-cluir ́a en alg ́un momento y devolver ́a un resultado. El monitor posee los siguientes m ́etodos:
+    public synchronized ingresar_a_sala(int charla ){
+        while (charlaActual /= charla && asistentes == capacidad) {
+            wait();
+        }
+        asistentes++
+    }
+    
+    public synchronized dejar_sala(){
+        while (charlaEnCurso){
+            wait();
+        }
+        asistentes--
+        notifyAll();
+    }
 
-await(), que devuelve el resultado del c ́omputo, bloqueando al thread que lo invoca mien-
-tras el resultado no est ́a disponible; y
-
-set(object), que asigna el resultado, desbloqueando a cualquier thread esperando en el
-monitor.
-Si va a implementar la clase en Java, una buena idea es que Promise implemente la interfaz
-Future, que s ́olo declara el m ́etodo await. De esta manera una funci ́on que desea devolver su
-resultado de manera asincr ́onica, puede crear un Promise e iniciar un thread para que sete el
-valor una vez haya concluido el computo necesario. La funci ́on puede devolver el Promise como
-un Future, evitando as ́ı que alguien m ́as pueda setear el valor.
-Ejemplo:
-Future async ( Object x ) {
-promise = new Promise ();
-thread {
-// computo costo en funcion de x que genera un resultado
-promise . set ( resultado );
-}
-return promise ;
-}
-¿Qu ́e sucede en su implementaci ́on de Promise si la funci ́on ejecutada de manera asincr ́onica
-arroja una excepci ́on? ¿C ́omo puede garantizar que el thread haciendo await pueda manejar la
-excepci ́on?
-Ejercicio 10. Se requiere implementar lo siguiente:
-a) Una lista datos de valores enteros y un monitor AccesoDatos con m ́etodos beginRead,
-endRead, beginWrite y endWrite, de forma tal que el uso de datos se gestione por medio
-de AccesoDatos. De esta manera, si m ́ultiples threads quieren utilizar datos s ́olo para leer su
-valor actual, deben poder hacerlo de manera concurrente, pero si hay uno o m ́as threads
-que quieran modificar el valor de la lista, deben hacerlo en exclusi ́on mutua entre ellos y
-
-3
-
-Programacion Concurrente  ́ Pr ́actica 6: Monitores
-
-adem ́as no deben haber threads intentando leer el contenido de la lista cuando alguno se
-disponga a modificarla.
-b) Una clase Writer que extienda de Thread que agregue alg ́un nuevo valor pasado por
-constructor al final de la lista datos.
-c) Una clase Reader que extienda de Thread que lea todos los valores actuales de la lista y
-los imprima por pantalla.
-d) Un programa que cree una instancia de AccesoDatos y active concurrentemente cuatro
-escritores (instanciados con alg ́un n ́umero generado al azar) y diez lectores, de manera
-que por medio de la instancia de AccesoDatos trabajen con la lista datos con la din ́amica
-especificada.
-e) Modifique su soluci ́on para que los threads escritores tengan prioridad de acceso a datos.
-Ejercicio 11. Dise ̃ne un monitor ThreadPool encargado de administrar la asignaci ́on de tareas
-entre m ́ultiples threads Worker, implementando los siguientes puntos:
-a) Un monitor ThreadPool, encargado de crear un Buffer de una capacidad total dada (como
-el del ejercicio 3), e iniciar una cantidad dada de threads Worker asign ́andole a cada el
-mismo Buffer de tareas. El monitor debe implementar un m ́etodo launch que env ́ıa una
-tarea a un Worker ocioso encol ́andola en el buffer.
-b) Un thread Worker que por siempre resuelve tareas obtenidas de un Buffer dado en su
-construcci ́on (asuma que las tareas son un objeto Runnable, es decir, implementa el m ́etodo
-run).
-c) Una tarea DummyTask (i.e., implementa Runnable) cuyo m ́etodo run simplemente imprime
-un string por consola.
-d) Una tarea PoisonPill (i.e., implementa Runnable) cuyo m ́etodo run arroja una excepci ́on
-de tipo PoisonException cuyo objetivo es terminar la ejecuci ́on de un Worker. Extienda,
-adem ́as, la interfaz del ThreadPool con un m ́etodo stop que, luego de agotadas las tareas
-encoladas, termina la ejecuci ́on de todos los workers mediante el uso de PosionPills.
-e) Un programa que instancia un ThreadPool para administrar 8 threads Worker y lance 100
-tareas de tipo DummyTask. Al terminar la ejecuci ́on de las 100 tareas el programa debe
-garantizar que todos los threads creados terminan su ejecuci ́on exitosamente.
+    public synchronized finalizar_charla(){ 
+        charlaEnCurso = false 
+        charlaActual = (charlaActual + 1) mod 3   
+        notifyAll();
+    } 
